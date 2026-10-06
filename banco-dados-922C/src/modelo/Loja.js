@@ -1,16 +1,16 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/banco');
 
-const Usuario = sequelize.define('Usuario', {
-    id: {
+const Loja = sequelize.define('Loja', {
+   id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true
     },
-    nome: {
+    endereço: {
         type: DataTypes.STRING,
         allowNull: false
     }
 });
 
-module.exports = Usuario
+module.exports = Loja
