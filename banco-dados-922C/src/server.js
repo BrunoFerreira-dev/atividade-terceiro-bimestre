@@ -2,6 +2,7 @@ const express = require('express');
 const sequelize = require('./config/banco');
 const Funcionario = require('./modelo/Funcionario');
 const Loja = require('./modelo/Loja');
+const Produto = require('./modelo/Produto');
 
 const app = express()
 const port = 3000
@@ -54,7 +55,115 @@ app.patch('/funcionario', async (req, res) => {
     return res.status(500).json({ erro: 'Erro interno ao deletar Funcionário.' });
   }
 })
-//LOJAS MANEIRAS E LEGAIS
+
+app.get('/loja/:idLoja/produto', async (req, res) => {
+  try {
+    const { idLoja } = req.params;
+
+    const loja = await Loja.findByPk(idLoja);
+
+    if (!loja) {
+      return res.status(404).json({
+        erro: 'Loja não encontrada.'
+      });
+    }
+
+    const produtos = await Produto.findAll({
+      where: { idLoja }
+    });
+
+    return res.status(200).json(produtos);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      erro: 'Erro ao consultar produtos.'
+    });
+  }
+});
+
+app.post('/loja/:idLoja/produto', async (req, res) => {
+  try {
+    const { idLoja } = req.params;
+    const { nome, descricao, preco } = req.body;
+
+    const loja = await Loja.findByPk(idLoja);
+
+    if (!loja) {
+      return res.status(404).json({
+        erro: 'Loja não encontrada.'
+      });
+    }
+
+    const produto = await Produto.create({
+      nome,
+      descricao,
+      preco,
+      idLoja
+    });
+
+    return res.status(201).json(produto);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      erro: 'Erro ao cadastrar produto.'
+    });
+  }
+});
+
+app.patch('/loja/:idLoja/produto/:id', async (req, res) => {
+  try {
+    const { idLoja, id } = req.params;
+    const dadosAtualizar = req.body;
+
+    const produto = await Produto.findOne({
+      where: { id, idLoja }
+    });
+
+    if (!produto) {
+      return res.status(404).json({
+        erro: 'Produto não encontrado nesta loja.'
+      });
+    }
+
+    await produto.update(dadosAtualizar);
+
+    return res.status(200).json({
+      mensagem: 'Produto atualizado com sucesso!',
+      produto
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      erro: 'Erro ao atualizar produto.'
+    });
+  }
+});
+
+app.delete('/loja/:idLoja/produto/:id', async (req, res) => {
+  try {
+    const { idLoja, id } = req.params;
+
+    const deletar = await Produto.destroy({
+      where: { id, idLoja }
+    });
+
+    if (deletar === 0) {
+      return res.status(404).json({
+        erro: 'Produto não encontrado nesta loja.'
+      });
+    }
+
+    return res.status(200).json({
+      mensagem: 'Produto excluído com sucesso!'
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      erro: 'Erro ao excluir produto.'
+    });
+  }
+});
+
 
 sequelize.sync().then(() => {
   console.log(`Banco de dados conectado com sucesso!`);
