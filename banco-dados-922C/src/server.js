@@ -1,60 +1,92 @@
+
 const express = require('express');
 const sequelize = require('./config/banco');
 const Funcionario = require('./modelo/Funcionario');
 const Loja = require('./modelo/Loja');
 const Produto = require('./modelo/Produto');
 
-const app = express()
-const port = 3000
+const app = express();
+const port = 3000;
 
 app.use(express.json());
-sequelize.sync();
 
 app.get('/funcionario', async (req, res) => {
-  const funcionarios = await Funcionario.findAll();
-  res.json(funcionarios);
-})
-
-app.post('/funcionario', async (req, res) => {
-  const { nome, endereco, idLoja } = req.body;
-  const usuario = await Funcionario.create({ nome, endereco, idLoja });
-  res.status(201).json(usuario);
+  try {
+    const funcionarios = await Funcionario.findAll();
+    return res.status(200).json(funcionarios);
+  } catch (error) {
+    return res.status(500).json({
+      erro: 'Erro ao consultar funcionários.'
+    });
+  }
 });
 
-app.delete('/funcionario', async (req, res) => {
-  const {id} = req.params;
-  try{
+app.post('/funcionario', async (req, res) => {
+  try {
+    const { nome, endereco, idLoja } = req.body;
+
+    const funcionario = await Funcionario.create({
+      nome,
+      endereco,
+      idLoja
+    });
+
+    return res.status(201).json(funcionario);
+  } catch (error) {
+    return res.status(500).json({
+      erro: 'Erro ao cadastrar funcionário.'
+    });
+  }
+});
+
+app.delete('/funcionario/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
     const deletar = await Funcionario.destroy({
-      where: {id: id}
-    })
+      where: { id }
+    });
+
     if (deletar === 0) {
-      return res.status(404).json({ erro: 'Funcionário não encontrado.' });
+      return res.status(404).json({
+        erro: 'Funcionário não encontrado.'
+      });
     }
 
-    return res.status(200).json({ mensagem: 'Funcionário deletado com sucesso!' });
-    
+    return res.status(200).json({
+      mensagem: 'Funcionário deletado com sucesso!'
+    });
   } catch (error) {
-    return res.status(500).json({ erro: 'Erro interno ao deletar Funcionário.' });
+    return res.status(500).json({
+      erro: 'Erro interno ao deletar funcionário.'
+    });
   }
-})
+});
 
-app.patch('/funcionario', async (req, res) => {
-  const {id} = req.params;
-  const dadosAtualizar = req.body;
-  try{
-    const atualizar = await Funcionario.update(dadosAtualizar, {
-      where: {id: id}
-    })
-    if (deletar === 0) {
-      return res.status(404).json({ erro: 'Funcionário não encontrado.' });
+app.patch('/funcionario/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const funcionario = await Funcionario.findByPk(id);
+
+    if (!funcionario) {
+      return res.status(404).json({
+        erro: 'Funcionário não encontrado.'
+      });
     }
 
-    return res.status(200).json({ mensagem: 'Funcionário deletado com sucesso!' });
-    
+    await funcionario.update(req.body);
+
+    return res.status(200).json({
+      mensagem: 'Funcionário atualizado com sucesso!',
+      funcionario
+    });
   } catch (error) {
-    return res.status(500).json({ erro: 'Erro interno ao deletar Funcionário.' });
+    return res.status(500).json({
+      erro: 'Erro interno ao atualizar funcionário.'
+    });
   }
-})
+});
 
 app.get('/loja/:idLoja/produto', async (req, res) => {
   try {
@@ -113,7 +145,6 @@ app.post('/loja/:idLoja/produto', async (req, res) => {
 app.patch('/loja/:idLoja/produto/:id', async (req, res) => {
   try {
     const { idLoja, id } = req.params;
-    const dadosAtualizar = req.body;
 
     const produto = await Produto.findOne({
       where: { id, idLoja }
@@ -125,7 +156,7 @@ app.patch('/loja/:idLoja/produto/:id', async (req, res) => {
       });
     }
 
-    await produto.update(dadosAtualizar);
+    await produto.update(req.body);
 
     return res.status(200).json({
       mensagem: 'Produto atualizado com sucesso!',
@@ -164,11 +195,14 @@ app.delete('/loja/:idLoja/produto/:id', async (req, res) => {
   }
 });
 
+sequelize.sync()
+  .then(() => {
+    console.log('Banco de dados conectado com sucesso!');
 
-sequelize.sync().then(() => {
-  console.log(`Banco de dados conectado com sucesso!`);
-
-  app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`)
+    app.listen(port, () => {
+      console.log(`Servidor rodando na porta ${port}`);
+    });
+  })
+  .catch((error) => {
+    console.error('Erro ao conectar ou sincronizar o banco:', error);
   });
-});
