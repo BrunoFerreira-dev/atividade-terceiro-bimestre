@@ -33,7 +33,6 @@ const Produto = sequelize.define('Produto', {
     }
 });
 
-// Relacionamento entre Loja e Produto
 Loja.hasMany(Produto, {
     foreignKey: 'idLoja',
     onUpdate: 'CASCADE',
