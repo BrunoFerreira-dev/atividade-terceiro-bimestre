@@ -7,7 +7,7 @@ const Loja = sequelize.define('Loja', {
         primaryKey: true,
         autoIncrement: true
     },
-    endereço: {
+    endereco: {
         type: DataTypes.STRING,
         allowNull: false
     }

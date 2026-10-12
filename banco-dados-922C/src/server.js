@@ -5,6 +5,14 @@ const Funcionario = require('./modelo/Funcionario');
 const Loja = require('./modelo/Loja');
 const Produto = require('./modelo/Produto');
 
+Funcionario.belongsTo(Loja, {
+  foreignKey: 'idLoja'
+});
+
+Loja.hasMany(Funcionario, {
+  foreignKey: 'idLoja'
+});
+
 const app = express();
 const port = 3000;
 
@@ -87,7 +95,82 @@ app.patch('/funcionario/:id', async (req, res) => {
     });
   }
 });
+//////LOJA
+app.get('/loja', async (req, res) => {
+  try {
+    const lojas = await Loja.findAll();
+    return res.status(200).json(lojas);
+  } catch (error) {
+    return res.status(500).json({
+      erro: 'Erro ao consultar lojas.'
+    });
+  }
+});
 
+app.post('/loja', async (req, res) => {
+  try {
+    const { endereco } = req.body;
+
+    const loja = await Loja.create({endereco});
+
+    return res.status(201).json(loja);
+  } catch (error) {
+    return res.status(500).json({
+      erro: 'Erro ao cadastrar loja.'
+    });
+  }
+});
+
+app.delete('/loja/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const deletar = await Loja.destroy({
+      where: { id }
+    });
+
+    if (deletar === 0) {
+      return res.status(404).json({
+        erro: 'Loja não encontrada.'
+      });
+    }
+
+    return res.status(200).json({
+      mensagem: 'Loja deletada com sucesso!'
+    });
+  } catch (error) {
+    return res.status(500).json({
+      erro: 'Erro interno ao deletar Loja.'
+    });
+  }
+});
+
+app.patch('/loja/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const loja = await Loja.findByPk(id);
+
+    if (!loja) {
+      return res.status(404).json({
+        erro: 'Loja não encontrada.'
+      });
+    }
+
+    await loja.update(req.body);
+
+    return res.status(200).json({
+      mensagem: 'Loja atualizada com sucesso!',
+      loja
+    });
+  } catch (error) {
+    return res.status(500).json({
+      erro: 'Erro interno ao atualizar loja.'
+    });
+  }
+});
+
+//////PRODUTOS
 app.get('/loja/:idLoja/produto', async (req, res) => {
   try {
     const { idLoja } = req.params;

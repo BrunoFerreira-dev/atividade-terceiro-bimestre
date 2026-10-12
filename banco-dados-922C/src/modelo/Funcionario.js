@@ -22,7 +22,8 @@ const Funcionario = sequelize.define('Funcionario', {
             key: 'id'
         },
         onUpdate: 'CASCADE',
-        onDelete: 'CASCADE'
+        onDelete: 'CASCADE',
+        allowNull: false
     }
 });
 
