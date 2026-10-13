@@ -111,7 +111,7 @@ app.post('/loja', async (req, res) => {
   try {
     const { endereco } = req.body;
 
-    const loja = await Loja.create({endereco});
+    const loja = await Loja.create({ endereco });
 
     return res.status(201).json(loja);
   } catch (error) {
